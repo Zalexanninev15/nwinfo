@@ -220,6 +220,16 @@ static void PrintX509Certificate(PNODE node, const UINT8* data, DWORD size)
 		NWL_NodeAttrSet(node, "Issuer", NWL_Ucs2ToUtf8(issuer), 0);
 		free(issuer);
 	}
+	SYSTEMTIME valid_from;
+	if (FileTimeToSystemTime(&cert->pCertInfo->NotBefore, &valid_from))
+		NWL_NodeAttrSetf(node, "Valid From", 0, "%04u-%02u-%02u %02u:%02u:%02u",
+			valid_from.wYear, valid_from.wMonth, valid_from.wDay,
+			valid_from.wHour, valid_from.wMinute, valid_from.wSecond);
+	SYSTEMTIME valid_to;
+	if (FileTimeToSystemTime(&cert->pCertInfo->NotAfter, &valid_to))
+		NWL_NodeAttrSetf(node, "Valid To", 0, "%04u-%02u-%02u %02u:%02u:%02u",
+			valid_to.wYear, valid_to.wMonth, valid_to.wDay,
+			valid_to.wHour, valid_to.wMinute, valid_to.wSecond);
 	pfnCertFreeCertificateContext(cert);
 	FreeLibrary(crypt32);
 }
