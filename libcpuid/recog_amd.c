@@ -380,6 +380,7 @@ const struct match_entry_t cpudb_amd[] = {
 	{ 15, -1, -1, 24,    4,  -1,    -1,    -1, { "C86",                   10 }, "C86-4G (Dharma)",                "14 nm"     },
 	{ 15, -1, -1, 24,    6,  -1,    -1,    -1, { "C86",                   10 }, "C86-4G (Shanghai)",              "14 nm"     },
 	{ 15, -1, -1, 24,    7,  -1,    -1,    -1, { "C86",                   10 }, "C86-4G (Chengdu)",               "14 nm"     },
+	{ 15, -1, -1, 24,    8,  -1,    -1,    -1, { "C86",                   10 }, "C86-4G (Suzhou)",                "14 nm"     },
 
 	/* Family 19h */
 	/* Zen 3 (2020) => https://en.wikichip.org/wiki/amd/microarchitectures/zen_3 */
@@ -462,10 +463,11 @@ const struct match_entry_t cpudb_amd[] = {
 	{ 15, -1, -1, 25,  117,  -1,    -1,    -1, { "Ryzen 3 PRO 8###[HU]",     10 }, "Ryzen 3 PRO (Hawk Point)",       "TSMC N4"  },
 	{ 15, -1, -1, 25,  117,  -1,    -1,    -1, { "Ryzen 3 8###[HU]",          8 }, "Ryzen 3 (Hawk Point)",           "TSMC N4"  },
 	/* Zen 5 (2024) => https://en.wikichip.org/wiki/amd/microarchitectures/zen_5 */
-	{ 15, -1, -1, 26,    2,  -1,    -1,    -1, { "EPYC 9##5",                4 }, "EPYC (Turin)",                    "TSMC N4X" },
-	{ 15, -1, -1, 26,   17,  -1,    -1,    -1, { "EPYC 9##5",                4 }, "EPYC (Turin Dense)",              "TSMC N3E" },
-	{ 15, -1, -1, 26,    8,  -1,    -1,    -1, { "Threadripper PRO 9###WX", 10 }, "Threadripper PRO (Shimada Peak)", "TSMC N4"  },
-	{ 15, -1, -1, 26,    8,  -1,    -1,    -1, { "Threadripper 9###X",       6 }, "Threadripper (Shimada Peak)",     "TSMC N4"  },
+	{ 15, -1, -1, 26,    2,  -1,    -1,    -1, { "EPYC 8##5",                 4 }, "EPYC (Sorano)",                   "TSMC N4"  }, // ?
+	{ 15, -1, -1, 26,    2,  -1,    -1,    -1, { "EPYC 9##5",                 4 }, "EPYC (Turin)",                    "TSMC N4X" },
+	{ 15, -1, -1, 26,   17,  -1,    -1,    -1, { "EPYC 9##5",                 4 }, "EPYC (Turin Dense)",              "TSMC N3E" },
+	{ 15, -1, -1, 26,    8,  -1,    -1,    -1, { "Threadripper PRO 9###WX",  10 }, "Threadripper PRO (Shimada Peak)", "TSMC N4"  },
+	{ 15, -1, -1, 26,    8,  -1,    -1,    -1, { "Threadripper 9###X",        6 }, "Threadripper (Shimada Peak)",     "TSMC N4"  },
 	/*  => Granite Ridge (9000 series, Zen 5 based) */
 	{ 15, -1, -1, 26,   68,  -1,    -1,    -1, { "Ryzen 9 PRO 9###",       8 }, "Ryzen 9 PRO (Granite Ridge)",    "TSMC N4"  },
 	{ 15, -1, -1, 26,   68,  -1,    -1,    -1, { "Ryzen 9 9###",           6 }, "Ryzen 9 (Granite Ridge)",        "TSMC N4"  },
@@ -484,10 +486,10 @@ const struct match_entry_t cpudb_amd[] = {
 	{ 15, -1, -1, 26,   96,  -1,    -1,    -1, { "Ryzen AI 5 PRO",         8 }, "Ryzen AI 5 PRO (Krackan Point)", "TSMC N4P" }, /* Ryzen AI 5 PRO 340 */
 	{ 15, -1, -1, 26,   96,  -1,    -1,    -1, { "Ryzen AI 5",             6 }, "Ryzen AI 5 (Krackan Point)",     "TSMC N4P" }, /* Ryzen AI 5 340 */
 	/* => Strix Halo (Zen 5/RDNA3.5/XDNA2 based) */
-	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX+ PRO",      10 }, "Ryzen AI MAX+ PRO (Strix Halo)", "TSMC N4P" }, /* Ryzen AI MAX+ PRO 395 */
-	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX+",          8 }, "Ryzen AI MAX+ (Strix Halo)",      "TSMC N4P" }, /* Ryzen AI MAX+ 395 */
-	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX PRO",       8 }, "Ryzen AI MAX PRO (Strix Halo)",   "TSMC N4P" },
-	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX",           6 }, "Ryzen AI MAX (Strix Halo)",       "TSMC N4P" },
+	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX+ PRO",     10 }, "Ryzen AI MAX+ PRO (Strix Halo)", "TSMC N4P" }, /* Ryzen AI MAX+ PRO 395 */
+	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX+",          8 }, "Ryzen AI MAX+ (Strix Halo)",     "TSMC N4P" }, /* Ryzen AI MAX+ 395 */
+	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX PRO",       8 }, "Ryzen AI MAX PRO (Strix Halo)",  "TSMC N4P" },
+	{ 15, -1, -1, 26,  112,  -1,    -1,    -1, { "Ryzen AI MAX",           6 }, "Ryzen AI MAX (Strix Halo)",      "TSMC N4P" },
 //     F   M   S  EF    EM #cores  L2$    L3$  Pattern                          Codename                          Technology
 };
 
