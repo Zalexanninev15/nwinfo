@@ -238,6 +238,9 @@ PrintPowerInfo(PNODE node)
 	else
 		NWL_NodeAttrSet(node, "Battery Life Percentage", "UNKNOWN", 0);
 
+	if (NWLC->NwOsInfo.dwMajorVersion >= 10)
+		NWL_NodeAttrSetBool(node, "Battery Saver", (Power.SystemStatusFlag & 1U), 0);
+
 	PrintBatteryTime(node, "Battery Life Remaining", Power.BatteryLifeTime);
 	PrintBatteryTime(node, "Battery Life Full", Power.BatteryFullLifeTime);
 
