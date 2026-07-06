@@ -174,4 +174,14 @@ lang_ru_ru[N__MAX_] =
     [N__FREE] = u8"Свободно",
     [N__CLOSE] = u8"Закрыть",
     [N__INSTALL_PAWNIO] = u8"Установить PawnIO", // install the PawnIO driver
+	[N__TRAY_ICON] = u8"Значок в трее",
+	[N__TRAY_DATA_SOURCE] = u8"Источник данных",
+	[N__TRAY_COLOR_MODE] = u8"Цветовой режим",
+	[N__TRAY_OFF] = u8"Выкл",
+	[N__TRAY_CPU_USAGE] = u8"Загрузка ЦП",
+	[N__TRAY_CPU_TEMP] = u8"Температура ЦП",
+	[N__TRAY_MEM_USAGE] = u8"Загрузка памяти",
+	[N__TRAY_BATTERY] = u8"Батарея",
+	[N__TRAY_DYNAMIC] = u8"Динамический",
+	[N__TRAY_FIXED] = u8"Фиксированный",
 };

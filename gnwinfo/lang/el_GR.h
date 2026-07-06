@@ -157,4 +157,14 @@ lang_el_gr[N__MAX_] =
 	[N__FREE] = u8"Ελεύθερο",
 	[N__CLOSE] = u8"Κλείσιμο",
 	[N__INSTALL_PAWNIO] = u8"Εγκατάσταση PawnIO", // install the PawnIO driver
+	[N__TRAY_ICON] = u8"Εικονίδιο δίσκου",
+	[N__TRAY_DATA_SOURCE] = u8"Πηγή δεδομένων",
+	[N__TRAY_COLOR_MODE] = u8"Λειτουργία χρώματος",
+	[N__TRAY_OFF] = u8"Ανενεργό",
+	[N__TRAY_CPU_USAGE] = u8"Χρήση CPU",
+	[N__TRAY_CPU_TEMP] = u8"Θερμ. CPU",
+	[N__TRAY_MEM_USAGE] = u8"Χρήση Μνήμης",
+	[N__TRAY_BATTERY] = u8"Μπαταρία",
+	[N__TRAY_DYNAMIC] = u8"Δυναμικό",
+	[N__TRAY_FIXED] = u8"Σταθερό",
 };

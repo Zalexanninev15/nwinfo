@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicense
 
 #include "gnwinfo.h"
 #include "gettext.h"
@@ -220,6 +220,53 @@ gnwinfo_draw_settings_window(struct nk_context* ctx, float width, float height)
 	draw_color_picker(ctx, &g_color_unknown);
 
 	nk_layout_row_dynamic(ctx, g_col_height, 1);
+	set_label(ctx, N_(N__TRAY_ICON));
+
+	nk_layout_row(ctx, NK_DYNAMIC, g_col_height, 3, (float[3]) { 0.1f, 0.4f, 0.5f });
+	nk_spacer(ctx);
+	set_label(ctx, N_(N__TRAY_DATA_SOURCE));
+	{
+		static const GETTEXT_STR_ID tray_source_ids[] = {
+			N__TRAY_OFF, N__TRAY_CPU_USAGE, N__TRAY_CPU_TEMP, N__TRAY_MEM_USAGE, N__TRAY_BATTERY
+		};
+		const char* current = N_(tray_source_ids[g_ctx.tray_data_source >= TRAY_SRC_OFF && g_ctx.tray_data_source < TRAY_SRC_MAX ? g_ctx.tray_data_source : 0]);
+		if (nk_combo_begin_ex(ctx, current, g_col_height, nk_false))
+		{
+			nk_layout_row_dynamic(ctx, g_col_height, 1);
+			for (int i = 0; i < TRAY_SRC_MAX; i++)
+			{
+				if (nk_combo_item_label(ctx, N_(tray_source_ids[i]), NK_TEXT_LEFT))
+					g_ctx.tray_data_source = i;
+			}
+			nk_combo_end(ctx);
+		}
+	}
+
+	nk_spacer(ctx);
+	set_label(ctx, N_(N__TRAY_COLOR_MODE));
+	{
+		static const GETTEXT_STR_ID tray_color_ids[] = { N__TRAY_DYNAMIC, N__TRAY_FIXED };
+		const char* current = N_(tray_color_ids[g_ctx.tray_color_mode == 1 ? 1 : 0]);
+		if (nk_combo_begin_ex(ctx, current, g_col_height, nk_false))
+		{
+			nk_layout_row_dynamic(ctx, g_col_height, 1);
+			for (int i = 0; i <= 1; i++)
+			{
+				if (nk_combo_item_label(ctx, N_(tray_color_ids[i]), NK_TEXT_LEFT))
+					g_ctx.tray_color_mode = i;
+			}
+			nk_combo_end(ctx);
+		}
+	}
+
+	if (g_ctx.tray_color_mode == 1)
+	{
+		nk_spacer(ctx);
+		set_label(ctx, N_(N__COLOR));
+		draw_color_picker(ctx, &g_ctx.tray_fixed_color);
+	}
+
+	nk_layout_row_dynamic(ctx, g_col_height, 1);
 	set_label(ctx, N_(N__HIDE_COMPONENTS));
 
 	nk_layout_row(ctx, NK_DYNAMIC, 0, 3, (float[3]) { 0.1f, 0.45f, 0.45f });
@@ -376,6 +423,10 @@ gnwinfo_draw_settings_window(struct nk_context* ctx, float width, float height)
 		set_ini_color(L"StateWarn", g_color_warning);
 		set_ini_color(L"StateError", g_color_error);
 		set_ini_color(L"StateUnknown", g_color_unknown);
+		gnwinfo_set_ini_value(L"Tray", L"DataSource", L"%d", g_ctx.tray_data_source);
+		gnwinfo_set_ini_value(L"Tray", L"ColorMode", L"%d", g_ctx.tray_color_mode);
+		gnwinfo_set_ini_value(L"Tray", L"FixedColor", L"%02X%02X%02X",
+			g_ctx.tray_fixed_color.r, g_ctx.tray_fixed_color.g, g_ctx.tray_fixed_color.b);
 		g_ctx.window_flag &= ~GUI_WINDOW_SETTINGS;
 	}
 out:

@@ -158,4 +158,14 @@ lang_de_de[N__MAX_] =
 	[N__FREE] = u8"Frei",
 	[N__CLOSE] = u8"Schließen",
 	[N__INSTALL_PAWNIO] = u8"PawnIO installieren", // install the PawnIO driver
+	[N__TRAY_ICON] = u8"Taskleistensymbol",
+	[N__TRAY_DATA_SOURCE] = u8"Datenquelle",
+	[N__TRAY_COLOR_MODE] = u8"Farbmodus",
+	[N__TRAY_OFF] = u8"Aus",
+	[N__TRAY_CPU_USAGE] = u8"CPU-Auslastung",
+	[N__TRAY_CPU_TEMP] = u8"CPU-Temp.",
+	[N__TRAY_MEM_USAGE] = u8"Speicherauslastung",
+	[N__TRAY_BATTERY] = u8"Akku",
+	[N__TRAY_DYNAMIC] = u8"Dynamisch",
+	[N__TRAY_FIXED] = u8"Fest",
 };

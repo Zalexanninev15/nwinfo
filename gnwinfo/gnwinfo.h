@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicense
 
 #pragma once
 
@@ -200,6 +200,18 @@ typedef struct _GNW_CONTEXT
 
 	NWLIB_MEM_SENSORS mem_sensors;
 
+	enum {
+		TRAY_SRC_OFF = 0,
+		TRAY_SRC_CPU_USAGE,
+		TRAY_SRC_CPU_TEMP,
+		TRAY_SRC_MEM_USAGE,
+		TRAY_SRC_BATTERY,
+		TRAY_SRC_MAX
+	} tray_data_source;
+	int tray_color_mode;
+	struct nk_color tray_fixed_color;
+	HICON tray_icon;
+
 	SRWLOCK lock;
 	HANDLE update_event;
 	HANDLE stop_event;
@@ -282,5 +294,6 @@ void gnwinfo_remove_systray(HWND wnd);
 void gnwinfo_update_systray(HWND wnd, HICON icon);
 void gnwinfo_show_systray_menu(HWND wnd);
 void gnwinfo_handle_systray_cmd(HWND wnd, WORD wmid);
+HICON gnwinfo_create_tray_number_icon(int value, COLORREF color);
 
 #endif

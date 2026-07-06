@@ -305,6 +305,16 @@ gnwinfo_ctx_init(HINSTANCE inst, HWND wnd, struct nk_context* ctx, float width, 
 	g_ctx.smart_flag = strtoul(gnwinfo_get_ini_value(L"Widgets", L"SmartFlags", L"0xE7060366"), NULL, 16);
 	g_ctx.gui_aa = strtoul(gnwinfo_get_ini_value(L"Window", L"AntiAliasing", L"1"), NULL, 10);
 
+	g_ctx.tray_data_source = strtol(gnwinfo_get_ini_value(L"Tray", L"DataSource", L"0"), NULL, 10);
+	g_ctx.tray_color_mode = strtol(gnwinfo_get_ini_value(L"Tray", L"ColorMode", L"0"), NULL, 10);
+	{
+		UINT32 hex = strtoul(gnwinfo_get_ini_value(L"Tray", L"FixedColor", L"00E676"), NULL, 16);
+		g_ctx.tray_fixed_color.r = (hex >> 16) & 0xFF;
+		g_ctx.tray_fixed_color.g = (hex >> 8) & 0xFF;
+		g_ctx.tray_fixed_color.b = hex & 0xFF;
+		g_ctx.tray_fixed_color.a = 0xFF;
+	}
+
 	for (WORD i = 0; i < sizeof(g_ctx.image) / sizeof(g_ctx.image[0]); i++)
 		g_ctx.image[i] = load_png(i + IDR_PNG_MIN);
 
@@ -428,6 +438,12 @@ gnwinfo_ctx_exit(void)
 
 	if (g_ctx.audio)
 		free(g_ctx.audio);
+
+	if (g_ctx.tray_icon)
+	{
+		DestroyIcon(g_ctx.tray_icon);
+		g_ctx.tray_icon = NULL;
+	}
 
 	ReleaseMutex(g_ctx.mutex);
 	CloseHandle(g_ctx.mutex);

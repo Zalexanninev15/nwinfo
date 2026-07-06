@@ -174,4 +174,14 @@ lang_ko_kr[N__MAX_] =
 	[N__FREE] = u8"여유",
 	[N__CLOSE] = u8"닫기",
 	[N__INSTALL_PAWNIO] = u8"PawnIO 설치", // install the PawnIO driver
+	[N__TRAY_ICON] = u8"트레이 아이콘",
+	[N__TRAY_DATA_SOURCE] = u8"데이터 소스",
+	[N__TRAY_COLOR_MODE] = u8"색상 모드",
+	[N__TRAY_OFF] = u8"끄기",
+	[N__TRAY_CPU_USAGE] = u8"CPU 사용량",
+	[N__TRAY_CPU_TEMP] = u8"CPU 온도",
+	[N__TRAY_MEM_USAGE] = u8"메모리 사용량",
+	[N__TRAY_BATTERY] = u8"배터리",
+	[N__TRAY_DYNAMIC] = u8"동적",
+	[N__TRAY_FIXED] = u8"고정",
 };

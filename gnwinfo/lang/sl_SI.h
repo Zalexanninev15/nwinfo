@@ -174,4 +174,14 @@ lang_sl_si[N__MAX_] =
 	[N__FREE] = u8"Nezasedeno",
 	[N__CLOSE] = u8"Zapri",
 	[N__INSTALL_PAWNIO] = u8"Namesti PawnIO", // install the PawnIO driver
+	[N__TRAY_ICON] = u8"Ikona v pladnju",
+	[N__TRAY_DATA_SOURCE] = u8"Vir podatkov",
+	[N__TRAY_COLOR_MODE] = u8"Barvni način",
+	[N__TRAY_OFF] = u8"Izključeno",
+	[N__TRAY_CPU_USAGE] = u8"Uporaba CPE",
+	[N__TRAY_CPU_TEMP] = u8"Temp. CPE",
+	[N__TRAY_MEM_USAGE] = u8"Uporaba pomnilnika",
+	[N__TRAY_BATTERY] = u8"Baterija",
+	[N__TRAY_DYNAMIC] = u8"Dinamično",
+	[N__TRAY_FIXED] = u8"Fiksno",
 };
