@@ -26,7 +26,7 @@ This file guides coding agents working in the `nwinfo` repository.
 
 ## 3. Build (Follow CI First)
 
-0. Use Visual Studio 2022 Developer PowerShell when possible.
+0. Use Visual Studio 2026 Developer PowerShell when possible.
    If `msbuild` is not in `PATH`, resolve it first:
 
 ```powershell

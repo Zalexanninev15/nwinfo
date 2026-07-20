@@ -2289,7 +2289,6 @@ float ryzen_smu_get_temp_offset(struct wr0_drv_t* drv_handle, struct cpu_id_t* i
 		{ "Threadripper 19", -27.0f },
 		{ "Threadripper 29", -27.0f },
 		{ "EPYC 7", -27.0f },
-		{ "EPYC 9", -49.0f },
 	};
 	if (initialized)
 		return offset;
