@@ -2515,8 +2515,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 				/// Fake Samsung SSD 990 Pro https://akiba-pc.watch.impress.co.jp/docs/topic/special/2093885.html (ja)
 				if (model.Find(_T("SAMSUNG SSD 990 PRO")) >= 0 && vars[i].FirmwareRev.Find(_T("8888888")) == 0) { flagFake = TRUE; }
 
-				/// JMicron JMS586 USB RAID does not support PCIeVID
-				if (vars[i].CommandType != CMD_TYPE_JMS586_20)
+				/// JMicron JMS586 USB RAID/AMD RC2 RAID don't support PCIeVID
+				if (!(vars[i].CommandType == CMD_TYPE_JMS586_20 || vars[i].CommandType == CMD_TYPE_AMD_RC2))
 				{
 					/// PCI Vendor ID for Samsung = 0x144D
 					if (model.Find(_T("SAMSUNG")) >= 0 && vars[i].IdentifyDevice.N.PCIeVID != 0x144D) { flagFake = TRUE; }
@@ -4483,6 +4483,11 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 				asi.Life = asi.Attribute[j].CurrentValue;
 				if (asi.Life <= 0 || asi.Life > 100) { asi.Life = -1; }
 			}
+			else if (asi.DiskVendorId == SSD_VENDOR_SAMSUNG && IsSamsungEnterpriseModel(asi.Model))
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
+				if (asi.Life < 0 || asi.Life > 100) { asi.Life = -1; }
+			}
 			else if ((asi.DiskVendorId == SSD_VENDOR_SANDISK || asi.DiskVendorId == SSD_VENDOR_SANDISK_LENOVO || asi.DiskVendorId == SSD_VENDOR_SANDISK_CLOUD) && asi.HostReadsWritesUnit == HOST_READS_WRITES_GB)
 			{
 				if (asi.NandWritesUnit == NAND_WRITES_1MB)
@@ -5191,6 +5196,31 @@ BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
 	}
 
 	return (modelUpper.Find(_T("INTEL")) >= 0 || modelUpper.Find(_T("SOLIDIGM")) >= 0 || flagSmartType == TRUE);
+}
+
+
+// Detect Samsung enterprise SATA models by model string.
+// Using CString keeps us header-agnostic (no ref/pointer confusion).
+BOOL CAtaSmart::IsSamsungEnterpriseModel(const CString& model)
+{
+	CString mu = model;
+	mu.MakeUpper();
+
+	// Retail/line names
+	if (mu.Find(L"SM863") >= 0 || mu.Find(L"PM863") >= 0 || mu.Find(L"PM863A") >= 0
+		|| mu.Find(L"SM883") >= 0 || mu.Find(L"PM883") >= 0 || mu.Find(L"SM843T") >= 0
+		|| mu.Find(L"PM853T") >= 0)
+	{
+		return TRUE;
+	}
+
+	// Common OEM codes for those lines (e.g., your MZ7KM... SM863)
+	if (mu.Find(L"MZ7KM") >= 0 || mu.Find(L"MZ7KH") >= 0 || mu.Find(L"MZ7LM") >= 0 || mu.Find(L"MZ7LH") >= 0)
+	{
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 
@@ -11727,20 +11757,39 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 					rawValue = asi->Attribute[j].WorstValue * 256 + asi->Attribute[j].CurrentValue;
 				}
 				// Intel SSD 520 Series and etc...
-				else if (
-					(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
-				||  (asi->DetectedTimeUnitType == POWER_ON_HOURS && rawValue >= 0x0DA000)
-				|| (asi->Model.Find(_T("Intel")) == 0 && rawValue >= 0x0DA000)
-				)
+				else if (asi->Model.Find(_T("Intel")) == 0)
 				{
-					asi->MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
-					int value = 0; 
-					rawValue = value = asi->Attribute[j].RawValue[2] * 256 * 256
-									 + asi->Attribute[j].RawValue[1] * 256
-									 + asi->Attribute[j].RawValue[0] - 0x0DA753; // https://crystalmark.info/bbs/c-board.cgi?cmd=one;no=560;id=diskinfo#560
-					if(value < 0)
+					CString fw = asi->FirmwareRev; // check exact field name in ATA_SMART_INFO
+					if (fw.CompareNoCase(_T("522ABBF0")) == 0 ||
+						fw.CompareNoCase(_T("520i")) == 0 ||
+						fw.CompareNoCase(_T("LB3i")) == 0)
 					{
-						rawValue = 0;
+						// Intel exceptions: attribute 09 is minutes
+						ULONGLONG minutes =
+							((ULONGLONG)asi->Attribute[j].RawValue[5] << 40) |
+							((ULONGLONG)asi->Attribute[j].RawValue[4] << 32) |
+							((ULONGLONG)asi->Attribute[j].RawValue[3] << 24) |
+							((ULONGLONG)asi->Attribute[j].RawValue[2] << 16) |
+							((ULONGLONG)asi->Attribute[j].RawValue[1] << 8) |
+							((ULONGLONG)asi->Attribute[j].RawValue[0]);
+
+						rawValue = (DWORD)(minutes / 60); // hours
+					}
+					else if (
+						(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+						|| (asi->DetectedTimeUnitType == POWER_ON_HOURS && rawValue >= 0x0DA000)
+						|| (rawValue >= 0x0DA000)
+						)
+					{
+						asi->MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
+						int value = 0;
+						rawValue = value = asi->Attribute[j].RawValue[2] * 256 * 256
+							+ asi->Attribute[j].RawValue[1] * 256
+							+ asi->Attribute[j].RawValue[0] - 0x0DA753;
+						if (value < 0)
+						{
+							rawValue = 0;
+						}
 					}
 				}
 
@@ -11920,6 +11969,13 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				{
 					asi->Life = asi->Attribute[j].CurrentValue;
 					if (asi->Life < 0 || asi->Life > 100) { asi->Life = -1; }
+				}
+				// NEW: Samsung enterprise SATA (Media_Wearout_Indicator normalized value = % life remaining)
+				else if (asi->DiskVendorId == SSD_VENDOR_SAMSUNG && IsSamsungEnterpriseModel(asi->Model))
+				{
+								// Samsung enterprise SATA: ID 0xE9 (233) normalized VALUE = % life remaining.
+								asi->Life = asi->Attribute[j].CurrentValue;
+								if (asi->Life < 0 || asi->Life > 100) { asi->Life = -1; }
 				}
 				else if ((asi->DiskVendorId == SSD_VENDOR_SANDISK ||
 						asi->DiskVendorId == SSD_VENDOR_SANDISK_LENOVO ||
@@ -12637,7 +12693,9 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			                                || vars[i].DiskVendorId == SSD_VENDOR_JMICRON || vars[i].DiskVendorId == SSD_VENDOR_MAXIOTEK || vars[i].DiskVendorId == SSD_VENDOR_YMTC || vars[i].DiskVendorId == SSD_VENDOR_SCY || vars[i].DiskVendorId == SSD_VENDOR_RECADATA || vars[i].DiskVendorId == SSD_VENDOR_ADATA_INDUSTRIAL))
 		|| (vars[i].Attribute[j].Id == 0xE8 && vars[i].DiskVendorId == SSD_VENDOR_PLEXTOR)
 		|| (vars[i].Attribute[j].Id == 0xE9 && (vars[i].DiskVendorId == SSD_VENDOR_INTEL || vars[i].DiskVendorId == SSD_VENDOR_OCZ || vars[i].DiskVendorId == SSD_VENDOR_OCZ_VECTOR || vars[i].DiskVendorId == SSD_VENDOR_SKHYNIX))
-		|| (vars[i].Attribute[j].Id == 0xE9 && vars[i].DiskVendorId == SSD_VENDOR_SANDISK_LENOVO_HELEN_VENUS)
+		|| (vars[i].Attribute[j].Id == 0xE9 && vars[i].DiskVendorId == SSD_VENDOR_SANDISK_LENOVO_HELEN_VENUS) || (vars[i].Attribute[j].Id == 0xE9
+			&& vars[i].DiskVendorId == SSD_VENDOR_SAMSUNG
+			&& IsSamsungEnterpriseModel(vars[i].Model))
 		)
 		{
 			flagUnknown = FALSE;
