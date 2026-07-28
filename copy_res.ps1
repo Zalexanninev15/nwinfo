@@ -35,6 +35,7 @@ $DriverFiles = @{
 		"ioctl\pawn\AMDFamily17.bin",
 		"ioctl\pawn\IntelMCHBAR.bin",
 		"ioctl\pawn\IntelMSR.bin",
+		"ioctl\pawn\IntelPCHThermal.bin",
 		"ioctl\pawn\RyzenSMU.bin",
 		"ioctl\pawn\SmbusI801.bin",
 		"ioctl\pawn\SmbusPIIX4.bin",

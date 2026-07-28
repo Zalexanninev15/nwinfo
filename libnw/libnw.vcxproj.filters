@@ -445,6 +445,9 @@
     <CopyFileToFolders Include="..\ioctl\pawn\ZhaoxinMSR.bin">
       <Filter>Binary Files</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="..\ioctl\pawn\IntelPCHThermal.bin">
+      <Filter>Binary Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

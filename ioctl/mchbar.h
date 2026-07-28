@@ -142,6 +142,8 @@ typedef union
 	uint64_t data;
 } intel_microarch_t;
 
+#define PWRMBASE_DEFAULT 0xFE000000
+
 intel_microarch_t
 mchbar_get_microarch(void);
 

@@ -356,6 +356,7 @@ This section describes all files included in the final release package.
 | `PawnIOSetup.exe` | Driver | PawnIO driver installer (x64) |
 | `IntelMCHBAR.bin` | PawnIO Module | Intel MCHBAR module for the PawnIO driver |
 | `IntelMSR.bin` | PawnIO Module | Intel MSR module for the PawnIO driver |
+| `IntelPCHThermal.bin` | PawnIO Module | Intel PCH Thermal module for the PawnIO driver |
 | `AMDFamily0F.bin` | PawnIO Module | AMD K8 MSR module for the PawnIO driver |
 | `AMDFamily10.bin` | PawnIO Module | AMD K10 MSR module for the PawnIO driver |
 | `AMDFamily17.bin` | PawnIO Module | AMD Zen MSR module for the PawnIO driver |

@@ -232,6 +232,7 @@ static BOOL load_pio(struct wr0_drv_t* drv)
 	load_pio_mod(&drv->pio_smpiix4, L"SmbusPIIX4.bin");
 	load_pio_mod(&drv->pio_lpcio, L"LpcIO.bin");
 	load_pio_mod(&drv->pio_mchbar, L"IntelMCHBAR.bin");
+	load_pio_mod(&drv->pio_pch, L"IntelPCHThermal.bin");
 	return TRUE;
 #else
 	return FALSE;
@@ -270,6 +271,7 @@ static void uninstall_pio(struct wr0_drv_t* drv)
 	unload_pio_mod(&drv->pio_smpiix4);
 	unload_pio_mod(&drv->pio_lpcio);
 	unload_pio_mod(&drv->pio_mchbar);
+	unload_pio_mod(&drv->pio_pch);
 	if (drv->handle != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(drv->handle);

@@ -215,6 +215,9 @@ ry_codename_t ryzen_smu_get_codename(struct cpu_id_t* id)
 		case 0x7C:
 			codename = CODENAME_HAWKPOINT;
 			break;
+		case 0xA0:
+			codename = CODENAME_BERGAMO;
+			break;
 		}
 		break;
 	case 0x1A: // Zen5
@@ -244,9 +247,6 @@ ry_codename_t ryzen_smu_get_codename(struct cpu_id_t* id)
 			break;
 		case 0x70:
 			codename = CODENAME_STRIXHALO;
-			break;
-		case 0xA0:
-			codename = CODENAME_BERGAMO;
 			break;
 		}
 		break;

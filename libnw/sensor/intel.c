@@ -293,7 +293,7 @@ static void get_mchbar_sensors(PNODE node)
 static void get_pch_sensors(PNODE node)
 {
 	float t = 0.0f;
-	if (ctx.type.microarch <= INTEL_ROCKETLAKE)
+	if (pch_get_mmio_reg() == PWRMBASE_DEFAULT)
 	{
 		uint32_t tss0 = pch_read_32(PMC_TSS0);
 		if ((tss0 & (1 << 9))) // TS Reading Valid

@@ -59,7 +59,15 @@ pch_read_32(uint64_t offset)
 		return 0;
 
 	uint32_t data = 0;
-	int ret = WR0_RdMmIo(NWLC->NwDrv, ctx.pch_base + offset, &data, sizeof(uint32_t));
+	int ret;
+	if (NWLC->NwDrv->type == WR0_DRIVER_PAWNIO)
+	{
+		ULONG64 out[2] = { 0 };
+		ret = WR0_ExecPawn(NWLC->NwDrv, &NWLC->NwDrv->pio_pch, "ioctl_read_raw", NULL, 0, out, 2, NULL);
+		data = (uint32_t)out[0];
+	}
+	else
+		ret = WR0_RdMmIo(NWLC->NwDrv, ctx.pch_base + offset, &data, sizeof(uint32_t));
 	if (ret)
 		NWL_Debug("PCH", "MMIO 32 @%llX+%llx failed.", ctx.pch_base, offset);
 	return data;
@@ -88,7 +96,6 @@ mchbar_read_64(uint64_t offset)
 
 #define MCHBAR_BASE_REG_LOW     0x48
 #define MCHBAR_BASE_REG_HIGH    0x4C
-#define PWRMBASE_DEFAULT 0xFE000000
 
 static uint64_t
 mchbar_get_base_64(uint64_t base_mask)
@@ -114,57 +121,6 @@ mchbar_get_base_64(uint64_t base_mask)
 	mmio_reg |= mmio_reg_high << 32;
 	mmio_reg &= base_mask;
 	return mmio_reg;
-}
-
-static const uint32_t INTEL_THERMAL_IDS[] =
-{
-	0x06F98086, // 400 Series
-	0x9DF98086, // 300 Series / C240 Series
-	0xA3798086, // 300 Series / C240 Series
-	0x02F98086, // 300 Series CNL-LP PCH
-	0xA2B18086, // 200 Series / X299 / Z370 Series
-	0xA1318086, // 100 Series / C230 Series
-	0x9D318086, // 100 Series Skylake PCH
-	0x3A328086, // 9 Series / 8 Series / C220 Series
-	0x9CA48086, // 9 Series Wildcat Point
-	0x1C248086, // 7 Series / C216 Series / 6 Series / C200 Series
-	0x3B328086, // 5 Series / 3400 Series
-	0x9C248086, // Haswell PCH
-	0x8C248086, // Haswell PCH
-	0xA1B18086, // C620 Series Lewisburg PCH
-	0x8D248086, // X99 Wellsburg
-};
-
-#define BAR_REG_LOW     0x10
-#define BAR_REG_HIGH    0x14
-
-static bool detect_pch_thermal(void)
-{
-	uint32_t pci_addr = WR0_FindPciByClass(NWLC->NwDrv, 0x11, 0x80, 0, 0);
-	if (pci_addr == 0xFFFFFFFF)
-		return false;
-	uint32_t id = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, 0);
-	for (size_t i = 0; i < ARRAYSIZE(INTEL_THERMAL_IDS); i++)
-	{
-		if (id == INTEL_THERMAL_IDS[i])
-		{
-			NWL_Debug("PCH", "Found Thermal Sensor with ID %08X", id);
-
-			uint64_t mmio_reg = 0;
-			mmio_reg = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, BAR_REG_LOW);
-			if (mmio_reg == 0xFFFFFFFF)
-				return false;
-			mmio_reg &= 0xFFFFF000;
-
-			uint64_t mmio_reg_high = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, BAR_REG_HIGH);
-			if (mmio_reg_high == 0xFFFFFFFF)
-				return false;
-			mmio_reg |= mmio_reg_high << 32;
-			ctx.pch_base = mmio_reg;
-			return true;
-		}
-	}
-	return false;
 }
 
 static inline void
@@ -463,6 +419,132 @@ identify_f19(struct cpu_id_t* id)
 	}
 }
 
+static const uint16_t INTEL_LEGACY_THERMAL_IDS[] =
+{
+	0x06F9, // 400 Series
+	0x9DF9, // 300 Series / C240 Series
+	0xA379, // 300 Series / C240 Series
+	0x02F9, // 300 Series CNL-LP PCH
+	0xA2B1, // 200 Series / X299 / Z370 Series
+	0xA131, // 100 Series / C230 Series
+	0x9D31, // 100 Series Skylake PCH
+	0x3A32, // 9 Series / 8 Series / C220 Series
+	0x9CA4, // 9 Series Wildcat Point
+	0x1C24, // 7 Series / C216 Series / 6 Series / C200 Series
+	0x3B32, // 5 Series / 3400 Series
+	0x9C24, // Haswell PCH
+	0x8C24, // Haswell PCH
+	0xA1B1, // C620 Series Lewisburg PCH
+	0x8D24, // X99 Wellsburg
+};
+
+static const uint16_t INTEL_MODERN_LPC_IDS[] =
+{
+	0x4381,
+	0x4385,
+	0x4386,
+	0x4387,
+	0x4388,
+	0x4389,
+	0x438B,
+	0x438F,
+	0x7A83,
+	0x7A84,
+	0x7A85,
+	0x7A86,
+	0x7A87,
+	0x7A88,
+	0x7A04,
+	0x7A05,
+	0x7A06,
+	0x7A0C,
+	0xAE0C,
+	0xAE0D,
+	0x7F0C,
+	0x7F0D,
+	0x7F12,
+	0x5182,
+	0x519D,
+	0x7E02,
+	0xA807,
+	0x7702,
+	0x5481,
+	0xE302,
+	0xE402,
+};
+
+#define BAR_REG_LOW     0x10
+#define BAR_REG_HIGH    0x14
+
+#define PCI_BUS_PCH                     0x00
+#define PCI_MAX_DEVICE                  0x20
+#define PCI_MAX_FUNCTION                0x08
+
+static bool detect_pch_thermal(void)
+{
+	if (NWLC->NwDrv->type == WR0_DRIVER_PAWNIO)
+	{
+		ULONG64 out[5] = { 0 };
+		WR0_ExecPawn(NWLC->NwDrv, &NWLC->NwDrv->pio_pch, "ioctl_identity", NULL, 0, out, 5, NULL);
+		switch (out[0])
+		{
+		case 1:
+			ctx.pch_base = PWRMBASE_DEFAULT;
+			NWL_Debug("PCH", "Found LPC Controller with ID %04X", (uint16_t)(out[1] >> 16));
+			break;
+		case 2:
+			ctx.pch_base = out[3];
+			NWL_Debug("PCH", "Found Thermal Sensor with ID %04X", (uint16_t)(out[1] >> 16));
+			break;
+		}
+		if (ctx.pch_base)
+			return true;
+		return false;
+	}
+
+	for (uint32_t dev = 0; dev < PCI_MAX_DEVICE; dev++)
+	{
+		for (uint32_t func = 0; func < PCI_MAX_FUNCTION; func++)
+		{
+			uint32_t pci_addr = PciBusDevFunc(PCI_BUS_PCH, dev, func);
+			uint32_t id = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, 0);
+			if (id == 0xFFFFFFFF)
+				continue;
+			if ((id & 0xFFFF) != 0x8086)
+				continue;
+			id = (id >> 16) & 0xFFFF;
+			for (size_t i = 0; i < ARRAYSIZE(INTEL_MODERN_LPC_IDS); i++)
+			{
+				if (id == INTEL_MODERN_LPC_IDS[i])
+				{
+					NWL_Debug("PCH", "Found LPC Controller with ID %04X", id);
+					ctx.pch_base = PWRMBASE_DEFAULT;
+					return true;
+				}
+			}
+			for (size_t i = 0; i < ARRAYSIZE(INTEL_LEGACY_THERMAL_IDS); i++)
+			{
+				if (id == INTEL_LEGACY_THERMAL_IDS[i])
+				{
+					NWL_Debug("PCH", "Found Thermal Sensor with ID %04X", id);
+					uint64_t mmio_reg = 0;
+					mmio_reg = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, BAR_REG_LOW);
+					if (mmio_reg == 0xFFFFFFFF)
+						return false;
+					mmio_reg &= 0xFFFFF000;
+					uint64_t mmio_reg_high = WR0_RdPciConf32(NWLC->NwDrv, pci_addr, BAR_REG_HIGH);
+					if (mmio_reg_high == 0xFFFFFFFF)
+						return false;
+					mmio_reg |= mmio_reg_high << 32;
+					ctx.pch_base = mmio_reg;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool
 mchbar_pch_init(void)
 {
@@ -510,12 +592,9 @@ mchbar_pch_init(void)
 		goto fail;
 	case INTEL_CPU_TYPE_CORE:
 		ctx.mchbar_base = mchbar_get_base_64(0x3FFFFFF8000); // 41:15
-		if (ctx.type.microarch <= INTEL_ROCKETLAKE)
-			detect_pch_thermal();
-		else
-			ctx.pch_base = PWRMBASE_DEFAULT;
-		break;
 	}
+
+	detect_pch_thermal();
 
 	NWL_Debug("MCHBAR", "MMIO REG %llX", ctx.mchbar_base);
 	NWL_Debug("PCH", "MMIO REG %llX", ctx.pch_base);
