@@ -17,6 +17,54 @@ extern NWLIB_GPU_DRV gpu_drv_nvidia;
 extern NWLIB_GPU_DRV gpu_drv_dxcore;
 extern NWLIB_GPU_DRV gpu_drv_d3d;
 
+#define GPUDL "GPU"
+
+// The GPU backends call into third-party vendor libraries (ControlLib, atiadlxx,
+// nvapi64, dxcore). A fault inside one of them must not take the whole report
+// down, so every call is guarded and every step is logged.
+static int
+GpuExceptionFilter(DWORD code, const char* name, const char* stage)
+{
+	NWL_Debug(GPUDL, "EXCEPTION %08lX in %s %s", code, name, stage);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+static void*
+GpuDriverInit(NWLIB_GPU_DRV* drv, PNWLIB_GPU_INFO info)
+{
+	void* volatile data = NULL;
+	NWL_Debug(GPUDL, "Initializing %s", drv->Name);
+	__try
+	{
+		data = drv->Init(info);
+	}
+	__except (GpuExceptionFilter(GetExceptionCode(), drv->Name, "init"))
+	{
+		data = NULL;
+	}
+	NWL_Debug(GPUDL, "%s init %s", drv->Name, data ? "OK" : "FAILED");
+	return data;
+}
+
+static uint32_t
+GpuDriverGetInfo(NWLIB_GPU_DRV* drv, NWLIB_GPU_DEV* dev, uint32_t dev_count)
+{
+	uint32_t volatile count = 0;
+	NWL_Debug(GPUDL, "Querying %s", drv->Name);
+	__try
+	{
+		count = drv->GetInfo(drv->Data, dev, dev_count);
+	}
+	__except (GpuExceptionFilter(GetExceptionCode(), drv->Name, "query"))
+	{
+		count = 0;
+	}
+	if (count > dev_count)
+		count = dev_count;
+	NWL_Debug(GPUDL, "%s reported %u device(s)", drv->Name, count);
+	return count;
+}
+
 PNWLIB_GPU_INFO NWL_InitGpu(void)
 {
 	PNWLIB_GPU_INFO info = calloc(1, sizeof(NWLIB_GPU_INFO));
@@ -33,12 +81,11 @@ PNWLIB_GPU_INFO NWL_InitGpu(void)
 	{
 		if (info->DeviceCount >= NWL_GPU_MAX_COUNT)
 			break;
-		info->Driver[i]->Data = info->Driver[i]->Init(info);
+		info->Driver[i]->Data = GpuDriverInit(info->Driver[i], info);
 		if (info->Driver[i]->Data == NULL)
 			continue;
 		uint32_t info_cnt = NWL_GPU_MAX_COUNT - info->DeviceCount;
-		uint32_t dev_count = info->Driver[i]->GetInfo(info->Driver[i]->Data, &info->Device[info->DeviceCount], info_cnt);
-		info->DeviceCount += dev_count;
+		info->DeviceCount += GpuDriverGetInfo(info->Driver[i], &info->Device[info->DeviceCount], info_cnt);
 	}
 
 	info->Initialized = 1;
@@ -48,6 +95,7 @@ PNWLIB_GPU_INFO NWL_InitGpu(void)
 	NWL_ArgSetAddStr(&pciClasses, "03");
 	info->PciList = NWL_EnumPci(NWL_NodeAlloc("PCI", NFLG_TABLE), pciClasses);
 	NWL_ArgSetFree(pciClasses);
+	NWL_Debug(GPUDL, "Init done, %u device(s)", info->DeviceCount);
 	return info;
 }
 
@@ -63,8 +111,7 @@ void NWL_GetGpuInfo(PNWLIB_GPU_INFO info)
 		if (info->Driver[i]->Data == NULL)
 			continue;
 		uint32_t info_cnt = NWL_GPU_MAX_COUNT - info->DeviceCount;
-		uint32_t dev_count = info->Driver[i]->GetInfo(info->Driver[i]->Data, &info->Device[info->DeviceCount], info_cnt);
-		info->DeviceCount += dev_count;
+		info->DeviceCount += GpuDriverGetInfo(info->Driver[i], &info->Device[info->DeviceCount], info_cnt);
 	}
 }
 

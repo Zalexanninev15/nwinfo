@@ -45,12 +45,17 @@ static void* igcl_gpu_init(PNWLIB_GPU_INFO info)
 		return NULL;
 
 	ctx->InitArgs.AppVersion = CTL_MAKE_VERSION(CTL_IMPL_MAJOR_VERSION, CTL_IMPL_MINOR_VERSION);
-	ctx->InitArgs.flags = CTL_INIT_FLAG_USE_LEVEL_ZERO;
+	// Do NOT set CTL_INIT_FLAG_USE_LEVEL_ZERO: it makes ctlInit load and
+	// initialize the Level Zero loader, which is slow and fragile on hybrid
+	// iGPU + dGPU systems. We never touch any ctlGetZeDevice() interop.
+	ctx->InitArgs.flags = 0;
 	ctx->InitArgs.Size = sizeof(ctl_init_args_t);
 	ctx->InitArgs.Version = 0;
 	memset(&ctx->InitArgs.ApplicationUID, 0, sizeof(ctl_application_id_t));
 
+	NWL_Debug(IGCL, "Loading ControlLib");
 	ctx->Result = IGCL_Init(&ctx->InitArgs, &ctx->ApiHandle);
+	NWL_Debug(IGCL, "ctlInit %X", ctx->Result);
 	if (ctx->Result != CTL_RESULT_SUCCESS)
 		goto fail;
 
