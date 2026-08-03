@@ -175,9 +175,12 @@ jobs:
 
     - name: Generate Release Notes
       if: startsWith(github.ref, 'refs/tags/')
+      env:
+        TAG_NAME: "${{ github.ref_name }}"
+        COMMIT_SHA: "${{ github.sha }}"
       run: |
         $changelogLines = New-Object System.Collections.Generic.List[string]
-        $tagName = "${{ github.ref_name }}"
+        $tagName = $env:TAG_NAME
         Write-Host "Generating changelog from tag '$tagName'"
         $isShallow = (git rev-parse --is-shallow-repository) -eq "true"
         if ($isShallow) {
@@ -203,7 +206,7 @@ jobs:
 
         $changelogBody = $changelogLines -join "`n"
         if ([string]::IsNullOrWhiteSpace($changelogBody)) {
-          $changelogBody = "No changelog entries generated. Automated build from commit ${{ github.sha }}."
+          $changelogBody = "No changelog entries generated. Automated build from commit $env:COMMIT_SHA."
         }
 
         $assetHashLines = New-Object System.Collections.Generic.List[string]
@@ -230,10 +233,12 @@ jobs:
     - name: Release
       if: startsWith(github.ref, 'refs/tags/')
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: |
-        $date_version = (Get-Date -Format 'yyyyMMdd') + ".${{ github.run_number }}"
-        gh release create "${{ github.ref_name }}" "NWinfo.zip" "NWinfoLite.zip" `
-          --title "${{ github.ref_name }} (Build $date_version)" `
-          --notes-file "release_notes.txt"
       env:
+        RELEASE_TAG: "${{ github.ref_name }}"
+        RUN_NUMBER: "${{ github.run_number }}"
         GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      run: |
+        $date_version = (Get-Date -Format 'yyyyMMdd') + ".$env:RUN_NUMBER"
+        gh release create "$env:RELEASE_TAG" "NWinfo.zip" "NWinfoLite.zip" `
+          --title "$env:RELEASE_TAG (Build $date_version)" `
+          --notes-file "release_notes.txt"
