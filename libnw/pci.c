@@ -61,12 +61,22 @@ ConvertPciPath(const char* path, char* buf, size_t bufSize)
 		size_t len = sep ? (size_t)(sep - path) : strlen(path);
 		unsigned int val;
 		if (sscanf_s(path, "PCIROOT(%u)", &val) == 1)
-			off += snprintf(buf + off, bufSize - off, "%sPciRoot(0x%x)", off ? "/" : "", val);
+		{
+			size_t remaining = bufSize - off;
+			int written = snprintf(buf + off, remaining, "%sPciRoot(0x%x)", off ? "/" : "", val);
+			if (written < 0 || (size_t)written >= remaining)
+				return;
+			off += (size_t)written;
+		}
 		else if (sscanf_s(path, "PCI(%4x)", &val) == 1 && len >= 8)
 		{
 			unsigned int dev = val & 0xFF;
 			unsigned int func = (val >> 8) & 0xFF;
-			off += snprintf(buf + off, bufSize - off, "%sPci(0x%x,0x%x)", off ? "/" : "", func, dev);
+			size_t remaining = bufSize - off;
+			int written = snprintf(buf + off, remaining, "%sPci(0x%x,0x%x)", off ? "/" : "", func, dev);
+			if (written < 0 || (size_t)written >= remaining)
+				return;
+			off += (size_t)written;
 		}
 		if (!sep)
 			break;
@@ -92,11 +102,21 @@ ConvertAcpiPath(const char* path, char* buf, size_t bufSize)
 				size_t nlen = strnlen_s(name, sizeof(name));
 				if (nlen > 0)
 					name[nlen - 1] = '\0';
-				off += snprintf(buf + off, bufSize - off, "\\%s", name);
+				size_t remaining = bufSize - off;
+				int written = snprintf(buf + off, remaining, "\\%s", name);
+				if (written < 0 || (size_t)written >= remaining)
+					return;
+				off += (size_t)written;
 				first = FALSE;
 			}
 			else
-				off += snprintf(buf + off, bufSize - off, ".%s", name);
+			{
+				size_t remaining = bufSize - off;
+				int written = snprintf(buf + off, remaining, ".%s", name);
+				if (written < 0 || (size_t)written >= remaining)
+					return;
+				off += (size_t)written;
+			}
 		}
 		(void)len;
 		if (!sep)
